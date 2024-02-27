@@ -104,7 +104,7 @@ def generate_file(file_path: list, proxy: dict=None):
                 content_type = EXTENSIONS[file_extension]
             else:
                 raise RuntimeError("This file type is not supported. Please try again with a different file.") 
-            with Client(timeout=60, proxies=proxy) as fetcher:
+            with Client(timeout=120, proxies=proxy) as fetcher:
                 response = fetcher.get(file)
                 file_data = response.read()
                 fetcher.close()
@@ -274,7 +274,7 @@ class PoeApi:
             kwargs = {"sslopt": {"cert_reqs": ssl.CERT_NONE}}
             self.ws.run_forever(**kwargs)
              
-    def connect_ws(self, timeout=20):
+    def connect_ws(self, timeout=30):
         if self.ws_connected:
             return
 
@@ -519,7 +519,7 @@ class PoeApi:
                     break
         return {'chatCode': chatCode, 'chatId': chatId, 'id': id, 'title': title}
     
-    def retry_message(self, chatCode: str, suggest_replies: bool=False, timeout: int=20):
+    def retry_message(self, chatCode: str, suggest_replies: bool=False, timeout: int=40):
         self.retry_attempts = 3
         timer = 0
         while None in self.active_messages.values():
@@ -650,7 +650,7 @@ class PoeApi:
             })
             sleep(0.5)
             
-        def get_suggestions(queue, chatCode: str=None, timeout: int=5):
+        def get_suggestions(queue, chatCode: str=None, timeout: int=10):
             variables = {'chatCode': chatCode}
             state = 'incomplete'
             suggestions = []
@@ -684,7 +684,7 @@ class PoeApi:
                 t2 = threading.Thread(target=get_suggestions, args=(self.suggestions_queue, chatCode, 5), daemon=True)
                 t2.start()
                 try:
-                    suggestions = self.suggestions_queue.get(timeout=5)
+                    suggestions = self.suggestions_queue.get(timeout=10)
                     yield suggestions
                 except queue.Empty:
                     yield {'text': response["text"], 'response':'', 'suggestedReplies': [], 'state': None, 'chatCode': chatCode, 'chatId': chatId, 'title': title}
@@ -694,7 +694,7 @@ class PoeApi:
         del self.message_queues[human_message_id]
         self.retry_attempts = 3
         
-    def send_message(self, bot: str, message: str, chatId: int=None, chatCode: str=None, file_path: list=[], suggest_replies: bool=False, timeout: int=10) -> Generator[dict, None, None]:
+    def send_message(self, bot: str, message: str, chatId: int=None, chatCode: str=None, file_path: list=[], suggest_replies: bool=False, timeout: int=60) -> Generator[dict, None, None]:
         bot = bot_map(bot)
         self.retry_attempts = 3
         timer = 0
@@ -871,7 +871,7 @@ class PoeApi:
             })
             sleep(0.5)
             
-        def get_suggestions(queue, chatCode: str=None, timeout: int=5):
+        def get_suggestions(queue, chatCode: str=None, timeout: int=10):
             variables = {'chatCode': chatCode}
             state = 'incomplete'
             suggestions = []
@@ -905,7 +905,7 @@ class PoeApi:
                 t2 = threading.Thread(target=get_suggestions, args=(self.suggestions_queue, chatCode, 5), daemon=True)
                 t2.start()
                 try:
-                    suggestions = self.suggestions_queue.get(timeout=5)
+                    suggestions = self.suggestions_queue.get(timeout=10)
                     yield suggestions
                 except queue.Empty:
                     yield {'text': response["text"], 'response':'', 'suggestedReplies': [], 'state': None, 'chatCode': chatCode, 'chatId': chatId, 'title': title}
@@ -1518,7 +1518,7 @@ class PoeApi:
         return topBot
         
     
-    def send_message_to_group(self, group_name: str, message: str='', timeout: int=60, user: str="User", autosave:bool=False, autoplay:bool=False, preset_history: str=''):
+    def send_message_to_group(self, group_name: str, message: str='', timeout: int=90, user: str="User", autosave:bool=False, autoplay:bool=False, preset_history: str=''):
         if group_name not in self.groups:
             raise ValueError(f"Group {group_name} not found. Make sure the group exists before sending message.")
         
