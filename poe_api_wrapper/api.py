@@ -194,7 +194,8 @@ class PoeApi:
                 )
             headers = {'Content-Type': payload.content_type}
             payload = payload.to_string()
-        response = self.client.post(f'{self.BASE_URL}/poe_api/{path}', data=payload, headers=headers)
+        #response = self.client.post(f'{self.BASE_URL}/poe_api/{path}', data=payload, headers=headers) AQUI QUE EU ALTEREI
+        response = self.client.post(f'{self.BASE_URL}/poe_api/{path}', content=payload, headers=headers)
         if response.status_code == 200:
             for file in file_form:
                 if hasattr(file[1], 'closed') and not file[1].closed:
